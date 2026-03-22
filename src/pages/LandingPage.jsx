@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-// import HeroSection from '../../components/ui/HeroSection';
-// import FeaturedRecipes from '../../components/ui/FeaturedRecipes';
-// import HowItWorks from '../../components/ui/HowItWorks';
-// import Testimonials from '../../components/ui/Testimonials';
+import HeroSection from '../components/ui/HeroSection';
+import FeaturedRecipes from '../components/ui/FeaturedRecipes';
+import HowItWorks from '../components/ui/HowItWorks';
+import Testimonials from '../components/ui/Testimonials';
 
 export default function LandingPage() {
   return (

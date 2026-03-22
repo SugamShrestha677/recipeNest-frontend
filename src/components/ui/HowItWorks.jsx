@@ -34,7 +34,7 @@ function HowItWorks() {
           {steps.map((step, index) => (
             <div key={index} className="text-center group">
               <div className="relative">
-                <div className={`w-24 h-24 mx-auto bg-gradient-to-r ${step.color} rounded-full flex items-center justify-center text-4xl mb-6 transform group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                <div className={`w-24 h-24 mx-auto bg-linear-to-r ${step.color} rounded-full flex items-center justify-center text-4xl mb-6 transform group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                   {step.icon}
                 </div>
                 {index < steps.length - 1 && (

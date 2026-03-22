@@ -16,6 +16,10 @@ function App() {
       <BrowserRouter>
         <Layout>
           <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
             <Route
               path="/"
               element={
@@ -40,10 +44,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            
           </Routes>
         </Layout>
       </BrowserRouter>
