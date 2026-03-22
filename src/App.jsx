@@ -9,6 +9,7 @@ import RecipeDetailPage from './pages/RecipeDetailPage';
 import CreateRecipePage from './pages/CreateRecipePage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
+import MyRecipes from './pages/MyRecipes';
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RecipeDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-recipes"
+              element={
+                <ProtectedRoute>
+                  <MyRecipes />
                 </ProtectedRoute>
               }
             />
