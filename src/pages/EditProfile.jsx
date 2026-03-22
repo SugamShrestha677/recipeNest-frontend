@@ -73,7 +73,7 @@ export default function EditProfile() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-orange-500 to-red-600 px-6 py-8">
+        <div className="bg-linear-to-r from-orange-500 to-red-600 px-6 py-8">
           <h1 className="text-3xl font-bold text-white">Edit Profile</h1>
           <p className="text-white/80 mt-2">Update your professional information</p>
         </div>

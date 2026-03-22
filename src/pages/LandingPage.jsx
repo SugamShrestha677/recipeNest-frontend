@@ -13,7 +13,7 @@ export default function LandingPage() {
       <Testimonials />
       
       {/* Call to Action */}
-      <section className="bg-gradient-to-r from-orange-500 to-red-600 py-20">
+      <section className="bg-linear-to-r from-orange-500 to-red-600 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Ready to Share Your Culinary Art?

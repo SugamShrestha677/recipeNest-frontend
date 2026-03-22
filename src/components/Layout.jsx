@@ -47,7 +47,7 @@ function Layout({ children }) {
                   <span className="text-2xl transform transition-transform group-hover:scale-110">
                     🍽️
                   </span>
-                  <span className="font-bold text-xl bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  <span className="font-bold text-xl bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                     RecipeNest
                   </span>
                 </Link>
@@ -151,7 +151,7 @@ function Layout({ children }) {
                     </Link>
                     <Link
                       to="/register"
-                      className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-5 py-2 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                      className="bg-linear-to-r from-orange-600 to-red-600 text-white px-5 py-2 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300"
                     >
                       Sign Up
                     </Link>
@@ -261,7 +261,7 @@ function Layout({ children }) {
                       </Link>
                       <Link
                         to="/register"
-                        className="block py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white text-center rounded-lg font-semibold"
+                        className="block py-2 bg-linear-to-r from-orange-600 to-red-600 text-white text-center rounded-lg font-semibold"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Sign Up
