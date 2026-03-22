@@ -3,8 +3,17 @@ import { AuthContext } from '../context/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 
 function ProtectedRoute({ children }) {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
   const location = useLocation();
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
