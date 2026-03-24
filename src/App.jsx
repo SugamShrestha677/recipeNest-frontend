@@ -11,6 +11,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import MyRecipes from './pages/MyRecipes';
 import EditProfilePage from './pages/EditProfile';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -19,14 +20,14 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <HomePage />
+                  <Dashboard/>
                 </ProtectedRoute>
               }
             />
