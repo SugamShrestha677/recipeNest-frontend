@@ -10,6 +10,7 @@ import CreateRecipePage from './pages/CreateRecipePage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import MyRecipes from './pages/MyRecipes';
+import EditProfilePage from './pages/EditProfile';
 
 function App() {
   return (
@@ -50,6 +51,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyRecipes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfilePage />
                 </ProtectedRoute>
               }
             />
