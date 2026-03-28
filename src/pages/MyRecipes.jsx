@@ -257,7 +257,7 @@ function MyRecipes() {
                   {/* Image Container */}
                   <div
                     onClick={() => handleRecipeClick(recipe._id)}
-                    className="relative h-56 overflow-hidden bg-gradient-to-br from-orange-200 to-red-200 dark:from-gray-700 dark:to-gray-600 cursor-pointer"
+                    className="relative h-56 overflow-hidden bg-linear-to-br from-orange-200 to-red-200 dark:from-gray-700 dark:to-gray-600 cursor-pointer"
                   >
                     {recipe.image && !imageErrors[recipe._id] ? (
                       <img

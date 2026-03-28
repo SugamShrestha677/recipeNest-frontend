@@ -14,7 +14,16 @@ function AuthenticatedHome() {
     totalLikes: 0
   });
   const [error, setError] = useState('');
+  const [imageErrors, setImageErrors] = useState({});
+   // Separate base URLs for API and images
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const IMAGE_BASE_URL = "http://localhost:5000"; // Direct server URL for images
+
   const navigate = useNavigate();
+  const handleImageError = (recipeId) => {
+    setImageErrors((prev) => ({ ...prev, [recipeId]: true }));
+  };
+
 
   useEffect(() => {
     fetchData();
@@ -163,11 +172,12 @@ function AuthenticatedHome() {
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer group"
                 >
                   <div className="relative h-48 overflow-hidden bg-linear-to-br from-orange-200 to-red-200 dark:from-gray-700 dark:to-gray-600">
-                    {recipe.image ? (
-                      <img 
-                        src={recipe.image} 
-                        alt={recipe.title} 
+                       {recipe.image && !imageErrors[recipe._id] ? (
+                      <img
+                        src={`${IMAGE_BASE_URL}${recipe.image}`}
+                        alt={recipe.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={() => handleImageError(recipe._id)}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

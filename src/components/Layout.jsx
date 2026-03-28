@@ -34,9 +34,9 @@ function Layout({ children }) {
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 transition-colors duration-300">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+        <header className="bg-white dark:bg-black py-1 shadow-lg sticky top-0 z-50 transition-colors duration-300">
+          <div className="w-full px-15 ">
+            <div className="flex justify-between items-center h-20">
               {/* Logo */}
               <div className="flex items-center">
                 <Link
@@ -44,17 +44,17 @@ function Layout({ children }) {
                   className="flex items-center space-x-2 group"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="text-2xl transform transition-transform group-hover:scale-110">
+                  <span className="text-3xl transform transition-transform group-hover:scale-110">
                     🍽️
                   </span>
-                  <span className="font-bold text-xl bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  <span className="font-bold text-3xl bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                     RecipeNest
                   </span>
                 </Link>
               </div>
 
               {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-6">
+              <div className="hidden md:flex items-center space-x-6 text-xl">
                 <Link
                   to="/"
                   className="text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
@@ -275,7 +275,7 @@ function Layout({ children }) {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="">
           {children}
         </main>
 
