@@ -12,11 +12,13 @@ import LandingPage from './pages/LandingPage';
 import MyRecipes from './pages/MyRecipes';
 import EditProfilePage from './pages/EditProfile';
 import Dashboard from './pages/Dashboard';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
         <Layout>
           <Routes>
             <Route path="/login" element={<LoginPage />} />

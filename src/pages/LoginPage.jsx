@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 function LoginPage() {
   const { login } = useContext(AuthContext);
@@ -23,8 +24,10 @@ function LoginPage() {
     try {
       await login(form);
       navigate('/');
+      toast.success("Login successful 🎉");
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
+      toast.error("Invalid credentials ❌");
     } finally {
       setLoading(false);
     }
