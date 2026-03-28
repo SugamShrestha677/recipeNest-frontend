@@ -12,25 +12,28 @@ export const AuthContext = createContext({
 });
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('recipenest_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Verify token on mount
+  // Check for existing session on mount
   useEffect(() => {
-    const verifyToken = async () => {
+    const checkAuth = async () => {
       const token = localStorage.getItem('recipenest_token');
-      if (token && user) {
+      const storedUser = localStorage.getItem('recipenest_user');
+      
+      if (token && storedUser) {
         try {
-          // Set token in apiClient
+          // Set token in axios headers
           apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          // Verify token is still valid
+          
+          // Verify token is still valid by fetching current user
           const response = await apiClient.get('/auth/me');
           setUser(response.data.user);
+          // Update stored user with latest data
+          localStorage.setItem('recipenest_user', JSON.stringify(response.data.user));
         } catch (error) {
-          // Token is invalid, clear everything
+          // Token is invalid or expired
+          console.error('Session validation failed:', error);
           localStorage.removeItem('recipenest_token');
           localStorage.removeItem('recipenest_user');
           delete apiClient.defaults.headers.common['Authorization'];
@@ -40,15 +43,13 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    verifyToken();
+    checkAuth();
   }, []);
 
-  // Persist user to localStorage
+  // Save user to localStorage whenever it changes
   useEffect(() => {
     if (user) {
       localStorage.setItem('recipenest_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('recipenest_user');
     }
   }, [user]);
 
@@ -56,8 +57,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await apiClient.post('/auth/login', credentials);
       const { token, user: returned } = res.data;
+      
+      // Store token and user
       localStorage.setItem('recipenest_token', token);
+      localStorage.setItem('recipenest_user', JSON.stringify(returned));
+      
+      // Set token in axios headers for future requests
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
       setUser(returned);
       toast.success('Welcome back!');
       return { success: true, user: returned };
@@ -72,8 +79,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await apiClient.post('/auth/register', payload);
       const { token, user: returned } = res.data;
+      
+      // Store token and user
       localStorage.setItem('recipenest_token', token);
+      localStorage.setItem('recipenest_user', JSON.stringify(returned));
+      
+      // Set token in axios headers for future requests
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
       setUser(returned);
       toast.success('Account created successfully!');
       return { success: true, user: returned };
@@ -106,5 +119,9 @@ export const AuthProvider = ({ children }) => {
     updateUser 
   }), [user, loading]);
 
-  return <AuthContext.Provider value={memoed}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={memoed}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
