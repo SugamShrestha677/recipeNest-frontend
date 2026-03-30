@@ -13,6 +13,7 @@ import MyRecipes from './pages/MyRecipes';
 import EditProfilePage from './pages/EditProfile';
 import Dashboard from './pages/Dashboard';
 import { Toaster } from 'react-hot-toast';
+import EditRecipePage from './pages/EditRecipePage'; // Add this import
 
 function App() {
   return (
@@ -54,6 +55,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyRecipes />
+                </ProtectedRoute>
+              }
+            />
+            {/* Add edit recipe route - THIS IS IMPORTANT */}
+            <Route
+              path="/recipes/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <EditRecipePage />
                 </ProtectedRoute>
               }
             />

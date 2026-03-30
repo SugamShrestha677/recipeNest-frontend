@@ -337,6 +337,7 @@ function MyRecipes() {
                         {recipe.title}
                       </h3>
                       <div className="flex gap-2 ml-2">
+                        {/* Edit Recipe */}
                         <button
                           onClick={() => navigate(`/recipes/edit/${recipe._id}`)}
                           className="p-1 text-gray-500 hover:text-orange-600 transition-colors"
@@ -346,6 +347,7 @@ function MyRecipes() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
+                        {/* Delete your recipe */}
                         <button
                           onClick={() => handleDeleteRecipe(recipe._id, recipe.title)}
                           disabled={deleteLoading === recipe._id}
