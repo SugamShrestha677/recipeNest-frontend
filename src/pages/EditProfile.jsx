@@ -385,7 +385,7 @@ function EditProfile() {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:text-gray-300"
                 >
                   Cancel
                 </button>

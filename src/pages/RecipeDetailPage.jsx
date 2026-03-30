@@ -1,16 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthContext } from '../context/AuthContext';
 import apiClient from '../api/apiClient';
+import toast from 'react-hot-toast';
 
 function RecipeDetailPage() {
   const { id } = useParams();
+  const { user } = useContext(AuthContext);
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('ingredients');
   const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Like and Save states
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [saved, setSaved] = useState(false);
+  const [savesCount, setSavesCount] = useState(0);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  
   const IMAGE_BASE_URL = "http://localhost:5000"; // Direct server URL for images
+
   useEffect(() => {
     let isActive = true;
     const fetchRecipe = async () => {
@@ -18,6 +31,14 @@ function RecipeDetailPage() {
         const res = await apiClient.get(`/recipes/${id}`);
         if (isActive) {
           setRecipe(res.data);
+          setLikesCount(res.data.likes?.length || 0);
+          setSavesCount(res.data.saves?.length || 0);
+          
+          // Check if user liked/saved this recipe
+          if (user) {
+            setLiked(res.data.likes?.includes(user.id));
+            setSaved(res.data.saves?.includes(user.id));
+          }
         }
       } catch (err) {
         setError(err.response?.data?.message || 'Unable to load recipe');
@@ -31,7 +52,55 @@ function RecipeDetailPage() {
     return () => {
       isActive = false;
     };
-  }, [id]);
+  }, [id, user]);
+
+  // Handle Like/Unlike
+  const handleLike = async () => {
+    if (!user) {
+      toast.error('Please login to like recipes');
+      return;
+    }
+
+    try {
+      setLikeLoading(true);
+      const response = await apiClient.post(`/recipes/${id}/like`);
+      setLiked(response.data.liked);
+      setLikesCount(response.data.likesCount);
+      toast.success(response.data.message);
+    } catch (error) {
+      console.error('Error liking recipe:', error);
+      toast.error(error.response?.data?.message || 'Failed to like recipe');
+    } finally {
+      setLikeLoading(false);
+    }
+  };
+
+  // Handle Save/Unsave
+  const handleSave = async () => {
+    if (!user) {
+      toast.error('Please login to save recipes');
+      return;
+    }
+
+    try {
+      setSaveLoading(true);
+      const response = await apiClient.post(`/recipes/${id}/save`);
+      setSaved(response.data.saved);
+      setSavesCount(response.data.savesCount);
+      toast.success(response.data.message);
+    } catch (error) {
+      console.error('Error saving recipe:', error);
+      toast.error(error.response?.data?.message || 'Failed to save recipe');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // Handle Share
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Recipe link copied to clipboard!');
+  };
 
   if (loading) {
     return (
@@ -90,6 +159,10 @@ function RecipeDetailPage() {
             alt={recipe.title}
             className={`w-full h-full object-contain transition-opacity duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.parentElement.innerHTML = '<div class="w-full h-full bg-linear-to-r from-orange-200 to-red-200 flex items-center justify-center"><span class="text-6xl">🍳</span></div>';
+            }}
           />
           <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent"></div>
         </div>
@@ -103,6 +176,49 @@ function RecipeDetailPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </Link>
+
+        {/* Like and Save Buttons (Top Right) */}
+        <div className="absolute top-6 right-6 z-20 flex gap-3">
+          {/* Like Button */}
+          <button
+            onClick={handleLike}
+            disabled={likeLoading}
+            className={`group flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
+              liked
+                ? 'bg-red-500 text-white shadow-lg'
+                : 'bg-white/90 dark:bg-gray-900/90 text-gray-700 dark:text-gray-300 hover:bg-red-500 hover:text-white'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {likeLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+            ) : (
+              <svg className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            )}
+            <span className="text-sm font-medium">{likesCount}</span>
+          </button>
+
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            disabled={saveLoading}
+            className={`group flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
+              saved
+                ? 'bg-orange-500 text-white shadow-lg'
+                : 'bg-white/90 dark:bg-gray-900/90 text-gray-700 dark:text-gray-300 hover:bg-orange-500 hover:text-white'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {saveLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+            ) : (
+              <svg className="w-5 h-5" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            )}
+            <span className="text-sm font-medium">{savesCount}</span>
+          </button>
+        </div>
 
         {/* Recipe Title and Meta */}
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 text-white">
@@ -158,7 +274,7 @@ function RecipeDetailPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Chef Info */}
-        {recipe.chefId && (
+        {recipe.createdBy && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,10 +287,10 @@ function RecipeDetailPage() {
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Created by</p>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {recipe.chefId.fullName || 'Professional Chef'}
+                {recipe.createdBy.name || 'Professional Chef'}
               </h3>
-              {recipe.chefId.bio && (
-                <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{recipe.chefId.bio}</p>
+              {recipe.createdBy.bio && (
+                <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{recipe.createdBy.bio}</p>
               )}
             </div>
           </motion.div>
@@ -338,19 +454,7 @@ function RecipeDetailPage() {
           className="mt-12 flex flex-wrap gap-4 justify-center"
         >
           <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-full font-semibold text-gray-700 dark:text-gray-300 hover:border-orange-500 hover:text-orange-600 transition-all duration-300"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print Recipe
-          </button>
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              alert('Link copied to clipboard!');
-            }}
+            onClick={handleShare}
             className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-orange-600 to-red-600 text-white rounded-full font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

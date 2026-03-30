@@ -1,25 +1,26 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import RecipeDetailPage from './pages/RecipeDetailPage';
-import CreateRecipePage from './pages/CreateRecipePage';
-import ProtectedRoute from './routes/ProtectedRoute';
-import LandingPage from './pages/LandingPage';
-import MyRecipes from './pages/MyRecipes';
-import EditProfilePage from './pages/EditProfile';
-import Dashboard from './pages/Dashboard';
-import { Toaster } from 'react-hot-toast';
-import EditRecipePage from './pages/EditRecipePage'; // Add this import
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import RecipeDetailPage from "./pages/RecipeDetailPage";
+import CreateRecipePage from "./pages/CreateRecipePage";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import LandingPage from "./pages/LandingPage";
+import MyRecipes from "./pages/MyRecipes";
+import EditProfilePage from "./pages/EditProfile";
+import Dashboard from "./pages/Dashboard";
+import { Toaster } from "react-hot-toast";
+import EditRecipePage from "./pages/EditRecipePage"; // Add this import
+import SavedRecipes from "./pages/SavedRecipes"; // Add this import
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-      <Toaster position="top-right" reverseOrder={false} />
+        <Toaster position="bottom-right" reverseOrder={false} />
         <Layout>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -30,7 +31,7 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard/>
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -68,6 +69,14 @@ function App() {
               }
             />
             <Route
+              path="/saved-recipes"
+              element={
+                <ProtectedRoute>
+                  <SavedRecipes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/profile/edit"
               element={
                 <ProtectedRoute>
@@ -75,7 +84,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
           </Routes>
         </Layout>
       </BrowserRouter>
