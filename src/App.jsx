@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import { Toaster } from "react-hot-toast";
 import EditRecipePage from "./pages/EditRecipePage"; // Add this import
 import SavedRecipes from "./pages/SavedRecipes"; // Add this import
+import PublicRecipesPage from "./pages/PublicRecipesPage";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/recipes" element={<PublicRecipesPage/>} />
             <Route path="/" element={<HomePage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
