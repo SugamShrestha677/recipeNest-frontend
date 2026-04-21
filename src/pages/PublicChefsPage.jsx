@@ -1,97 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import apiClient from '../api/apiClient';
+
+const IMAGE_BASE_URL = 'http://localhost:5000';
+const DEFAULT_AVATAR = 'https://randomuser.me/api/portraits/lego/1.jpg';
+
+function normalizeImageUrl(image) {
+  if (!image) {
+    return DEFAULT_AVATAR;
+  }
+
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image;
+  }
+
+  return `${IMAGE_BASE_URL}${image}`;
+}
 
 function PublicChefsPage() {
   const [chefs, setChefs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
 
-  // Dummy chefs data for public view
-  const dummyChefs = [
-    {
-      _id: 'chef1',
-      name: 'Chef Maria Rodriguez',
-      specialty: 'Italian Cuisine',
-      experience: 12,
-      location: 'Rome, Italy',
-      image: 'https://randomuser.me/api/portraits/women/1.jpg',
-      recipeCount: 24,
-      followers: 3456,
-      bio: 'Passionate about authentic Italian cooking and sharing traditional recipes passed down through generations.',
-      awards: ['Best Italian Chef 2022', 'Michelin Star 2023']
-    },
-    {
-      _id: 'chef2',
-      name: 'Chef David Chen',
-      specialty: 'Asian Fusion',
-      experience: 8,
-      location: 'Singapore',
-      image: 'https://randomuser.me/api/portraits/men/2.jpg',
-      recipeCount: 18,
-      followers: 2345,
-      bio: 'Creating innovative Asian fusion dishes with a modern twist.',
-      awards: ['Young Chef Award 2021']
-    },
-    {
-      _id: 'chef3',
-      name: 'Chef Sarah Johnson',
-      specialty: 'Pastry Arts',
-      experience: 10,
-      location: 'Paris, France',
-      image: 'https://randomuser.me/api/portraits/women/3.jpg',
-      recipeCount: 32,
-      followers: 5678,
-      bio: 'Award-winning pastry chef specializing in French patisserie.',
-      awards: ['Pastry Chef of the Year 2023', 'Gold Medal World Pastry Cup']
-    },
-    {
-      _id: 'chef4',
-      name: 'Chef Hiroshi Tanaka',
-      specialty: 'Japanese Cuisine',
-      experience: 15,
-      location: 'Tokyo, Japan',
-      image: 'https://randomuser.me/api/portraits/men/4.jpg',
-      recipeCount: 42,
-      followers: 7890,
-      bio: 'Master sushi chef with 15 years of experience in traditional Japanese cuisine.',
-      awards: ['Sushi Master 2020', 'Best Japanese Restaurant 2022']
-    },
-    {
-      _id: 'chef5',
-      name: 'Chef Elena Garcia',
-      specialty: 'Mediterranean',
-      experience: 7,
-      location: 'Barcelona, Spain',
-      image: 'https://randomuser.me/api/portraits/women/5.jpg',
-      recipeCount: 15,
-      followers: 1876,
-      bio: 'Bringing the flavors of the Mediterranean to your kitchen.',
-      awards: ['Rising Star Chef 2023']
-    },
-    {
-      _id: 'chef6',
-      name: 'Chef James Wilson',
-      specialty: 'British Cuisine',
-      experience: 20,
-      location: 'London, UK',
-      image: 'https://randomuser.me/api/portraits/men/6.jpg',
-      recipeCount: 56,
-      followers: 12345,
-      bio: 'Celebrity chef specializing in modern British cuisine.',
-      awards: ['GB Chef of the Year', '3 Michelin Stars']
-    }
-  ];
-
-  const specialties = ['all', ...new Set(dummyChefs.map(chef => chef.specialty))];
-
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setChefs(dummyChefs);
-      setLoading(false);
-    }, 800);
+    let isActive = true;
+
+    const fetchChefsFromRecipes = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const res = await apiClient.get('/recipes', {
+          params: {
+            page: 1,
+            limit: 50,
+            sortBy: 'createdAt',
+            sortOrder: 'desc'
+          }
+        });
+
+        const recipes = res.data?.recipes || [];
+        const chefMap = new Map();
+
+        recipes.forEach((recipe) => {
+          const chef = recipe.createdBy;
+          if (!chef?._id) {
+            return;
+          }
+
+          if (!chefMap.has(chef._id)) {
+            chefMap.set(chef._id, {
+              _id: chef._id,
+              name: chef.name || 'Unknown Chef',
+              specialty: chef.specialty || 'General Cuisine',
+              experience: chef.experience || 0,
+              location: chef.location || 'Location not specified',
+              image: normalizeImageUrl(chef.profilePicture),
+              recipeCount: 0,
+              followers: Array.isArray(chef.followers) ? chef.followers.length : 0,
+              bio: chef.bio || 'Passionate chef sharing delicious recipes.'
+            });
+          }
+
+          const existingChef = chefMap.get(chef._id);
+          existingChef.recipeCount += 1;
+
+          if (!existingChef.specialty || existingChef.specialty === 'General Cuisine') {
+            existingChef.specialty = recipe.cuisine || existingChef.specialty;
+          }
+        });
+
+        if (isActive) {
+          setChefs(Array.from(chefMap.values()));
+        }
+      } catch (err) {
+        if (isActive) {
+          setError(err.response?.data?.message || 'Unable to load chefs right now.');
+          setChefs([]);
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchChefsFromRecipes();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
+
+  const specialties = ['all', ...new Set(chefs.map((chef) => chef.specialty).filter(Boolean))];
 
   const filteredChefs = chefs.filter(chef => {
     const matchesSearch = chef.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,7 +114,7 @@ function PublicChefsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-linear-to-br from-orange-50 to-red-50 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Header */}
@@ -123,6 +126,12 @@ function PublicChefsPage() {
             Discover culinary artists from around the world and their amazing recipes
           </p>
         </div>
+
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+            {error}
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
@@ -203,6 +212,9 @@ function PublicChefsPage() {
                       src={chef.image}
                       alt={chef.name}
                       className="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-orange-500 group-hover:border-orange-600 transition-all"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_AVATAR;
+                      }}
                     />
                     <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-2 py-1">
                       {chef.followers.toLocaleString()} followers
@@ -262,7 +274,7 @@ function PublicChefsPage() {
         )}
 
         {/* Call to Action for Unauthenticated Users */}
-        <div className="mt-12 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl p-8 text-center text-white">
+        <div className="mt-12 bg-linear-to-r from-orange-600 to-red-600 rounded-xl p-8 text-center text-white">
           <h2 className="text-2xl font-bold mb-2">Want to Become a Featured Chef?</h2>
           <p className="mb-4">Join our community of culinary professionals and showcase your talent!</p>
           <Link

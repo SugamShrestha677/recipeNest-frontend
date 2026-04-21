@@ -3,119 +3,76 @@ import { Link } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
 
+const IMAGE_BASE_URL = 'http://localhost:5000';
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
+
+function normalizeImageUrl(image) {
+  if (!image) {
+    return DEFAULT_IMAGE;
+  }
+
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image;
+  }
+
+  return `${IMAGE_BASE_URL}${image}`;
+}
+
 function PublicRecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCuisine, setSelectedCuisine] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
-  // Dummy recipes data for public view
-  const dummyRecipes = [
-    {
-      _id: '1',
-      title: 'Grandma\'s Apple Pie',
-      description: 'A classic homemade apple pie with a flaky crust and sweet cinnamon filling. Perfect for any occasion!',
-      image: 'https://images.unsplash.com/photo-1568571780765-9276ac8b75a7?ixlib=rb-4.0.3',
-      prepTime: 30,
-      cookTime: 45,
-      servings: 8,
-      difficulty: 'Medium',
-      cuisine: 'American',
-      chefName: 'Chef Maria Rodriguez',
-      chefId: 'chef1',
-      createdAt: '2024-03-20T10:00:00Z',
-      likes: 1245,
-      views: 5678
-    },
-    {
-      _id: '2',
-      title: 'Spaghetti Carbonara',
-      description: 'Authentic Italian pasta with eggs, cheese, and crispy pancetta. Rich, creamy, and absolutely delicious!',
-      image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?ixlib=rb-4.0.3',
-      prepTime: 15,
-      cookTime: 20,
-      servings: 4,
-      difficulty: 'Medium',
-      cuisine: 'Italian',
-      chefName: 'Chef David Chen',
-      chefId: 'chef2',
-      createdAt: '2024-03-18T14:30:00Z',
-      likes: 892,
-      views: 3456
-    },
-    {
-      _id: '3',
-      title: 'Chicken Tikka Masala',
-      description: 'Creamy and flavorful Indian curry with grilled chicken. A restaurant-quality dish made at home!',
-      image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-4.0.3',
-      prepTime: 20,
-      cookTime: 35,
-      servings: 6,
-      difficulty: 'Hard',
-      cuisine: 'Indian',
-      chefName: 'Chef Sarah Johnson',
-      chefId: 'chef3',
-      createdAt: '2024-03-15T09:15:00Z',
-      likes: 2103,
-      views: 8901
-    },
-    {
-      _id: '4',
-      title: 'Fresh Sushi Roll',
-      description: 'Fresh and delicious sushi rolls with salmon and avocado. Perfect for sushi lovers!',
-      image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?ixlib=rb-4.0.3',
-      prepTime: 40,
-      cookTime: 10,
-      servings: 4,
-      difficulty: 'Hard',
-      cuisine: 'Japanese',
-      chefName: 'Chef Hiroshi Tanaka',
-      chefId: 'chef4',
-      createdAt: '2024-03-12T11:20:00Z',
-      likes: 1567,
-      views: 6789
-    },
-    {
-      _id: '5',
-      title: 'Mediterranean Bowl',
-      description: 'Healthy bowl with quinoa, roasted vegetables, and tahini dressing. Vegan and gluten-free option available.',
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3',
-      prepTime: 20,
-      cookTime: 25,
-      servings: 2,
-      difficulty: 'Easy',
-      cuisine: 'Mediterranean',
-      chefName: 'Chef Elena Garcia',
-      chefId: 'chef5',
-      createdAt: '2024-03-10T16:45:00Z',
-      likes: 734,
-      views: 2345
-    },
-    {
-      _id: '6',
-      title: 'Beef Wellington',
-      description: 'Classic British dish with beef tenderloin wrapped in puff pastry. Perfect for special occasions!',
-      image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?ixlib=rb-4.0.3',
-      prepTime: 45,
-      cookTime: 45,
-      servings: 6,
-      difficulty: 'Hard',
-      cuisine: 'British',
-      chefName: 'Chef James Wilson',
-      chefId: 'chef6',
-      createdAt: '2024-03-08T13:10:00Z',
-      likes: 2456,
-      views: 9876
-    }
-  ];
-
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setRecipes(dummyRecipes);
-      setLoading(false);
-    }, 800);
+    let isActive = true;
+
+    const fetchRecipes = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const res = await apiClient.get('/recipes', {
+          params: {
+            page: 1,
+            limit: 50,
+            sortBy: 'createdAt',
+            sortOrder: 'desc'
+          }
+        });
+
+        if (isActive) {
+          const recipeList = res.data?.recipes || [];
+          setRecipes(
+            recipeList.map((recipe) => ({
+              ...recipe,
+              image: normalizeImageUrl(recipe.image),
+              chefName: recipe.createdBy?.name || 'Unknown Chef',
+              chefId: recipe.createdBy?._id || '',
+              likes: recipe.likes?.length || 0,
+              views: recipe.views || 0
+            }))
+          );
+        }
+      } catch (err) {
+        if (isActive) {
+          setError(err.response?.data?.message || 'Unable to load recipes right now.');
+          setRecipes([]);
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchRecipes();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const cuisines = ['all', 'American', 'Italian', 'Indian', 'Japanese', 'Mediterranean', 'British'];
@@ -160,6 +117,13 @@ function PublicRecipesPage() {
             Explore culinary masterpieces from professional chefs around the world
           </p>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+            {error}
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
@@ -256,6 +220,9 @@ function PublicRecipesPage() {
                     src={recipe.image}
                     alt={recipe.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      e.currentTarget.src = DEFAULT_IMAGE;
+                    }}
                   />
                   <div className="absolute top-3 left-3">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${getDifficultyColor(recipe.difficulty)}`}>
@@ -279,7 +246,7 @@ function PublicRecipesPage() {
                   {/* Chef Info */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center text-white text-xs">
+                      <div className="w-6 h-6 rounded-full bg-linear-to-r from-orange-500 to-red-500 flex items-center justify-center text-white text-xs">
                         {recipe.chefName.charAt(0)}
                       </div>
                       <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -308,7 +275,7 @@ function PublicRecipesPage() {
         )}
 
         {/* Call to Action for Unauthenticated Users */}
-        <div className="mt-12 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl p-8 text-center text-white">
+        <div className="mt-12 bg-linear-to-r from-orange-600 to-red-600 rounded-xl p-8 text-center text-white">
           <h2 className="text-2xl font-bold mb-2">Want to Share Your Own Recipes?</h2>
           <p className="mb-4">Join RecipeNest today and become part of our culinary community!</p>
           <Link
