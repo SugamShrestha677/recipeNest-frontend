@@ -4,6 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
 
+const IMAGE_BASE_URL = 'http://localhost:5000';
+
+function normalizeImageUrl(image) {
+  if (!image) {
+    return '';
+  }
+
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image;
+  }
+
+  return `${IMAGE_BASE_URL}${image}`;
+}
+
 function EditProfile() {
   const { user, updateUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -32,7 +46,7 @@ function EditProfile() {
         website: user.website || '',
         phone: user.phone || ''
       });
-      setProfilePicturePreview(user.profilePicture || '');
+      setProfilePicturePreview(normalizeImageUrl(user.profilePicture));
     }
   }, [user]);
 
@@ -105,23 +119,24 @@ function EditProfile() {
     setLoading(true);
     
     try {
-      let profilePictureUrl = user?.profilePicture;
+      // Create FormData for multipart upload
+      const uploadData = new FormData();
+      uploadData.append('name', formData.fullName);
+      uploadData.append('bio', formData.bio);
+      uploadData.append('specialty', formData.specialty);
+      uploadData.append('experience', formData.experience ? parseInt(formData.experience) : '');
+      uploadData.append('location', formData.location);
+      uploadData.append('website', formData.website);
+      uploadData.append('phone', formData.phone);
       
-      // Upload image if changed
+      // Add image file if selected
       if (profilePicture) {
-        const imageFormData = new FormData();
-        imageFormData.append('profilePicture', profilePicture);
-        const imageResponse = await apiClient.put('/api/profile/picture', imageFormData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        profilePictureUrl = imageResponse.data.profilePicture;
+        uploadData.append('profilePicture', profilePicture);
       }
       
-      // Update profile
-      const response = await apiClient.put('/api/profile', {
-        ...formData,
-        profilePicture: profilePictureUrl,
-        experience: formData.experience ? parseInt(formData.experience) : null
+      // Update profile with image and other data
+      const response = await apiClient.put('/auth/profile', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       // Update user context
@@ -181,6 +196,10 @@ function EditProfile() {
                         src={profilePicturePreview}
                         alt="Profile"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement.innerHTML = '<div class="w-full h-full bg-linear-to-br from-orange-200 to-red-200 flex items-center justify-center"><span class="text-4xl">👨‍🍳</span></div>';
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-linear-to-br from-orange-200 to-red-200 flex items-center justify-center">
