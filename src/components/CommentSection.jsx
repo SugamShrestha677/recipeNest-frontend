@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import apiClient from '../api/apiClient';
+
+const IMAGE_BASE_URL = 'http://localhost:5000';
+
+function resolveProfilePictureUrl(profilePicture) {
+  if (!profilePicture) {
+    return '';
+  }
+
+  if (profilePicture.startsWith('http://') || profilePicture.startsWith('https://')) {
+    return profilePicture;
+  }
+
+  return `${IMAGE_BASE_URL}${profilePicture.startsWith('/') ? '' : '/'}${profilePicture}`;
+}
+
+function avatarFallback(name) {
+  return `https://ui-avatars.com/api/?background=ea580c&color=fff&bold=true&name=${encodeURIComponent(name || 'User')}`;
+}
 
 function CommentSection({ recipeId, comments: initialComments, onCommentAdded }) {
   const [comments, setComments] = useState(initialComments || []);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
+
+  useEffect(() => {
+    setComments(initialComments || []);
+  }, [initialComments]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -23,9 +45,9 @@ function CommentSection({ recipeId, comments: initialComments, onCommentAdded })
       });
       
       const addedComment = response.data;
-      setComments([addedComment, ...comments]);
+      setComments((prev) => [addedComment, ...prev]);
       setNewComment('');
-      if (onCommentAdded) onCommentAdded();
+      if (onCommentAdded) onCommentAdded(addedComment);
       toast.success('Comment added successfully!');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -39,14 +61,16 @@ function CommentSection({ recipeId, comments: initialComments, onCommentAdded })
     try {
       const response = await apiClient.post(`/comments/${commentId}/like`);
       // Update comment likes in state
-      setComments(comments.map(comment => 
-        comment._id === commentId 
-          ? { ...comment, likes: response.data.likes }
-          : comment
-      ));
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment._id === commentId
+            ? { ...comment, likes: response.data.likes }
+            : comment
+        )
+      );
     } catch (error) {
       console.error('Error liking comment:', error);
-      toast.error('Failed to like comment');
+      toast.error(error.response?.data?.message || 'Failed to like comment');
     }
   };
 
@@ -77,7 +101,7 @@ function CommentSection({ recipeId, comments: initialComments, onCommentAdded })
           <button
             type="submit"
             disabled={loading}
-            className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+            className="bg-linear-to-r from-orange-600 to-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50"
           >
             {loading ? 'Posting...' : 'Post Comment'}
           </button>
@@ -97,12 +121,15 @@ function CommentSection({ recipeId, comments: initialComments, onCommentAdded })
                 <div className="flex items-center gap-3">
                   {comment.user?.profilePicture ? (
                     <img
-                      src={comment.user.profilePicture}
+                      src={resolveProfilePictureUrl(comment.user.profilePicture)}
                       alt={comment.user.name}
                       className="w-10 h-10 rounded-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = avatarFallback(comment.user?.name);
+                      }}
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 rounded-full bg-linear-to-r from-orange-500 to-red-500 flex items-center justify-center text-white font-bold">
                       {comment.user?.name?.charAt(0) || 'U'}
                     </div>
                   )}

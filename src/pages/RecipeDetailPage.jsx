@@ -4,6 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
+import CommentSection from '../components/CommentSection';
+
+function resolveProfilePictureUrl(profilePicture, baseUrl) {
+  if (!profilePicture) {
+    return '';
+  }
+
+  if (profilePicture.startsWith('http://') || profilePicture.startsWith('https://')) {
+    return profilePicture;
+  }
+
+  return `${baseUrl}${profilePicture.startsWith('/') ? '' : '/'}${profilePicture}`;
+}
 
 function RecipeDetailPage() {
   const { id } = useParams();
@@ -13,6 +26,7 @@ function RecipeDetailPage() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('ingredients');
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [creatorImageError, setCreatorImageError] = useState(false);
   
   // Like and Save states
   const [liked, setLiked] = useState(false);
@@ -31,6 +45,7 @@ function RecipeDetailPage() {
         const res = await apiClient.get(`/recipes/${id}`);
         if (isActive) {
           setRecipe(res.data);
+          setCreatorImageError(false);
           setLikesCount(res.data.likes?.length || 0);
           setSavesCount(res.data.saves?.length || 0);
           
@@ -100,6 +115,23 @@ function RecipeDetailPage() {
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success('Recipe link copied to clipboard!');
+  };
+
+  const handleCommentAdded = (addedComment) => {
+    if (!addedComment) {
+      return;
+    }
+
+    setRecipe((prev) => {
+      if (!prev) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        comments: [addedComment, ...(prev.comments || [])]
+      };
+    });
   };
 
   if (loading) {
@@ -281,9 +313,20 @@ function RecipeDetailPage() {
             transition={{ delay: 0.2 }}
             className="flex items-center gap-4 mb-12 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg"
           >
-            <div className="w-16 h-16 bg-linear-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-2xl">
-              👨‍🍳
-            </div>
+            {recipe.createdBy.profilePicture && !creatorImageError ? (
+              <img
+                src={resolveProfilePictureUrl(recipe.createdBy.profilePicture, IMAGE_BASE_URL)}
+                alt={recipe.createdBy.name || 'Professional Chef'}
+                className="w-16 h-16 rounded-full object-cover border-2 border-orange-500"
+                onError={(e) => {
+                  setCreatorImageError(true);
+                }}
+              />
+            ) : (
+              <div className="w-16 h-16 bg-linear-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-2xl">
+                👨‍🍳
+              </div>
+            )}
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Created by</p>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -463,6 +506,12 @@ function RecipeDetailPage() {
             Share Recipe
           </button>
         </motion.div>
+
+        <CommentSection
+          recipeId={id}
+          comments={recipe.comments || []}
+          onCommentAdded={handleCommentAdded}
+        />
       </div>
     </div>
   );
