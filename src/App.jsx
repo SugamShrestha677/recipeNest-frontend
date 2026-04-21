@@ -17,6 +17,7 @@ import EditRecipePage from "./pages/EditRecipePage"; // Add this import
 import SavedRecipes from "./pages/SavedRecipes"; // Add this import
 import PublicRecipesPage from "./pages/PublicRecipesPage";
 import PublicChefsPage from "./pages/PublicChefsPage";
+import ChefDetailsPage from "./pages/ChefDetailsPage";
 
 function App() {
   return (
@@ -52,6 +53,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RecipeDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chefs/:id"
+              element={
+                <ProtectedRoute>
+                  <ChefDetailsPage />
                 </ProtectedRoute>
               }
             />

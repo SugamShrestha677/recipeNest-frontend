@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import { AuthContext } from '../context/AuthContext';
 
 const IMAGE_BASE_URL = 'http://localhost:5000';
 const DEFAULT_AVATAR = 'https://randomuser.me/api/portraits/lego/1.jpg';
@@ -18,6 +19,7 @@ function normalizeImageUrl(image) {
 }
 
 function PublicChefsPage() {
+  const { user } = useContext(AuthContext);
   const [chefs, setChefs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -216,9 +218,9 @@ function PublicChefsPage() {
                         e.currentTarget.src = DEFAULT_AVATAR;
                       }}
                     />
-                    <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-2 py-1">
+                    {/* <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-2 py-1">
                       {chef.followers.toLocaleString()} followers
-                    </div>
+                    </div> */}
                   </div>
                   
                   {/* Chef Info */}
@@ -273,17 +275,43 @@ function PublicChefsPage() {
           </div>
         )}
 
-        {/* Call to Action for Unauthenticated Users */}
-        <div className="mt-12 bg-linear-to-r from-orange-600 to-red-600 rounded-xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-2">Want to Become a Featured Chef?</h2>
-          <p className="mb-4">Join our community of culinary professionals and showcase your talent!</p>
-          <Link
-            to="/register"
-            className="inline-block bg-white text-orange-600 px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
-          >
-            Become a Chef
-          </Link>
-        </div>
+        {user ? (
+          <div className="mt-12 bg-linear-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-xl p-8 text-white">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Welcome back, {user.fullName || user.name || 'Chef'}!</h2>
+                <p className="text-white/90">
+                  Your next featured dish could inspire thousands. Share a new recipe or refine your chef profile to stand out.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/recipes/create"
+                  className="inline-block bg-white text-teal-700 px-5 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
+                >
+                  Create Recipe
+                </Link>
+                <Link
+                  to="/profile/edit"
+                  className="inline-block bg-black/20 border border-white/40 text-white px-5 py-2 rounded-lg font-semibold hover:bg-black/30 transition-all"
+                >
+                  Upgrade Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-12 bg-linear-to-r from-orange-600 to-red-600 rounded-xl p-8 text-center text-white">
+            <h2 className="text-2xl font-bold mb-2">Want to Become a Featured Chef?</h2>
+            <p className="mb-4">Join our community of culinary professionals and showcase your talent!</p>
+            <Link
+              to="/register"
+              className="inline-block bg-white text-orange-600 px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
+            >
+              Become a Chef
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

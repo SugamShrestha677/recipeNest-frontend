@@ -2,6 +2,37 @@ import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
+const API_ORIGIN = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
+).replace(/\/api\/?$/, "");
+
+function buildAvatarFallback(name) {
+  return `https://ui-avatars.com/api/?background=ea580c&color=fff&bold=true&name=${encodeURIComponent(
+    name || "User"
+  )}`;
+}
+
+function resolveProfilePictureUrl(profilePicture) {
+  if (!profilePicture) {
+    return "";
+  }
+
+  if (profilePicture.startsWith("http://") || profilePicture.startsWith("https://")) {
+    return profilePicture;
+  }
+
+  return `${API_ORIGIN}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`;
+}
+
+function getUserAvatarSrc(user) {
+  const normalizedProfile = resolveProfilePictureUrl(user?.profilePicture);
+  if (normalizedProfile) {
+    return normalizedProfile;
+  }
+
+  return buildAvatarFallback(user?.fullName || user?.name || "User");
+}
+
 function Layout({ children }) {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -115,16 +146,13 @@ function Layout({ children }) {
                   <div className="relative group">
                     <button className="flex items-center space-x-2 focus:outline-none">
                       <img
-                        src={
-                          user.profilePicture ||
-                          "https://ui-avatars.com/api/?background=ea580c&color=fff&bold=true&name=" +
-                            (user.fullName || user.name || "User")
-                        }
+                        src={getUserAvatarSrc(user)}
                         alt={user.fullName || user.name}
                         className="w-8 h-8 rounded-full object-cover border-2 border-orange-500"
                         onError={(e) => {
-                          e.target.src =
-                            "https://ui-avatars.com/api/?background=ea580c&color=fff&bold=true&name=User";
+                          e.currentTarget.src = buildAvatarFallback(
+                            user.fullName || user.name || "User"
+                          );
                         }}
                       />
                       <span className="text-gray-700 dark:text-gray-300 font-medium">
