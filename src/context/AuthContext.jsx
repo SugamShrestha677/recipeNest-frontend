@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 
 export const AuthContext = createContext({
   user: null,
+  isAdmin: false,
   loading: true,
   login: async () => {},
   register: async () => {},
@@ -112,6 +113,7 @@ export const AuthProvider = ({ children }) => {
 
   const memoed = useMemo(() => ({ 
     user, 
+    isAdmin: user?.role === 'admin',
     loading, 
     login, 
     register, 

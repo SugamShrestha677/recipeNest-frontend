@@ -18,6 +18,7 @@ import SavedRecipes from "./pages/SavedRecipes"; // Add this import
 import PublicRecipesPage from "./pages/PublicRecipesPage";
 import PublicChefsPage from "./pages/PublicChefsPage";
 import ChefDetailsPage from "./pages/ChefDetailsPage";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -37,6 +38,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

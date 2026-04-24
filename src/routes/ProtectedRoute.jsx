@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, requiredRole }) {
   const { user, loading } = useContext(AuthContext);
   const location = useLocation();
 
@@ -19,6 +19,10 @@ function ProtectedRoute({ children }) {
   // Only redirect after loading is complete and user is still null
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
