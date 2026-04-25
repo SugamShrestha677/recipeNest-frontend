@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 function FeaturedRecipes() {
   const [recipes, setRecipes] = useState([]);
@@ -14,7 +15,8 @@ function FeaturedRecipes() {
 
   const fetchFeaturedRecipes = async () => {
     try {
-      const response = await axios.get('/api/recipes?limit=6');
+      // const response = await axios.get('/api/recipes?limit=6');
+      const response = await axios.get(`${API}api/recipes?limit=6`);
       setRecipes(response.data.recipes || []);
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
